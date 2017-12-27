@@ -52,7 +52,9 @@ function! s:detect_format()
   if line =~# '^--------- beginning of'
     let line = getline(2)
   endif
-  if line =~# '^\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\s\+\d\+\s\+\d\+'
+  if line =~# '^\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\s\+\w\+\s\+\d\+\s\+\d\+'
+    return 'threadtime-process'
+  elseif line =~# '^\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\s\+\d\+\s\+\d\+'
     return 'threadtime'
   elseif line =~# '^\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d'
     return 'time'
@@ -109,6 +111,13 @@ elseif b:logcat_format ==# 'threadtime'
   syntax match logcatLineHead /^/ contained nextgroup=logcatTime
   syntax match logcatProcess /\s\+\d\+\s\+\d\+/ contained skipwhite nextgroup=logcatTag
   syntax match logcatTag '\<[VDIWEF] [^:]\+:'ms=s+2,me=e-1 contained
+elseif b:logcat_format ==# 'threadtime-process'
+  call s:define_level('^\d\d-\d\d \d\d:\d\d:\d\d.\d\d\d\s\+\w\+\s\+\d\+\s\+\d\+ %s .*$')
+  syntax cluster logcatItem add=logcatLineHead
+  syntax cluster logcatTimeNext add=logcatProcess
+  syntax match logcatLineHead /^/ contained nextgroup=logcatTime
+  syntax match logcatProcess /\s\+\w\+\s\+\d\+\s\+\d\+/ contained skipwhite nextgroup=logcatTag
+  syntax match logcatTag '\<[VDIWEF] [^:]\+\s?:'ms=s+2,me=e-1 contained
 elseif b:logcat_format ==# 'long'
   call s:define_level('^\[.* %s/.*\]\n\_.\{-}\n\n')
   syntax cluster logcatItem add=logcatMetaLine
@@ -168,6 +177,10 @@ time
 
 threadtime
 09-01 17:14:12.260  2710  2770 V LockPatternKeyguardView: *** dispatchDraw() time: 334858746
+
+threadtime-process
+12-24 17:57:56.326  wifi   698   698 I WifiHAL : Got channel list with 15 channels
+12-24 17:57:56.427  1041   681  1352 D audio_hw_extn: audio_extn_set_anc_parameters: anc_enabled:0
 
 long
 [ 09-01 17:14:12.260  2710:0xad2 V/LockPatternKeyguardView ]
